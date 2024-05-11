@@ -1,7 +1,7 @@
 version 1.0
 
 
-#
+# 
 workflow SnifflesSingleSample {
     input {
         String sample_id
