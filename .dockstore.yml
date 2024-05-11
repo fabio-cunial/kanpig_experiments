@@ -1,0 +1,7 @@
+version: 1.2
+workflows:
+- name: SnifflesSingleSample
+  subclass: wdl
+  publish: True
+  primaryDescriptorPath: /wdl/SnifflesSingleSample.wdl
+  testParameterFiles:
