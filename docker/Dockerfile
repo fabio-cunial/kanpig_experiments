@@ -70,7 +70,7 @@ RUN wget https://github.com/samtools/htslib/releases/download/${htslib_version}/
     && rm htslib-${htslib_version}.tar.bz2 \
     && cd htslib-${htslib_version} \
     && ./configure \
-    && make \
+    && make -j 16 \
     && make install \
     && cd ${work_dir} \
     && rm -rf htslib-${htslib_version} \
@@ -83,7 +83,7 @@ RUN wget https://github.com/samtools/samtools/releases/download/${samtools_versi
     && rm samtools-${samtools_version}.tar.bz2 \
     && cd samtools-${samtools_version} \
     && ./configure --without-curses \
-    && make \
+    && make -j 16 \
     && make install \
     && cd ${work_dir} \
     && rm -rf samtools-${samtools_version} \
@@ -96,7 +96,7 @@ RUN wget https://github.com/samtools/bcftools/releases/download/${bcftools_versi
     && rm bcftools-${bcftools_version}.tar.bz2 \
     && cd bcftools-${bcftools_version} \
     && ./configure --without-curses \
-    && make \
+    && make -j 16 \
     && make install \
     && cd ${work_dir} \
     && bcftools --help
@@ -114,11 +114,12 @@ RUN pip install setuptools==58 scikit-learn \
     && cuteSV -h
 
 # KANPIG
-COPY ./kanpig .
-
-# SVJEDI-GRAPH
-RUN conda install -c bioconda svjedi-graph \
-    && svjedi-graph.py -h
+ARG kanpig_version=0.3.1
+RUN wget https://github.com/ACEnglish/kanpig/releases/download/v0.3.1/kanpig-v${kanpig_version}-x86_64-unknown-linux-musl.tar.gz \
+    && tar -xzvf kanpig-v${kanpig_version}-x86_64-unknown-linux-musl.tar.gz \
+    && mv kanpig-v${kanpig_version}-x86_64-unknown-linux-musl/kanpig ./kanpig \
+    && chmod +x ./kanpig \
+    && ./kanpig -h
 
 # LRCALLER 1.0
 RUN wget https://github.com/DecodeGenetics/LRcaller/releases/download/v1.0/lrcaller-1.0_linux-x86-64.tgz \
@@ -139,3 +140,18 @@ RUN wget https://github.com/arq5x/bedtools2/releases/download/v${bedtools_versio
     && chmod +x bedtools \
     && mv bedtools /usr/local/bin \
     && bedtools --help
+
+# MINIGRAPH
+ARG minigraph_version=0.21
+RUN wget https://github.com/lh3/minigraph/releases/download/v0.21/minigraph-${minigraph_version}_x64-linux.tar.bz2 \
+    && tar xjf minigraph-${minigraph_version}_x64-linux.tar.bz2 \
+    && rm -f minigraph-${minigraph_version}_x64-linux.tar.bz2 \
+    && chmod +x minigraph-${minigraph_version}_x64-linux/minigraph
+ENV PATH=${work_dir}/minigraph-${minigraph_version}_x64-linux:${PATH}
+RUN minigraph && echo 0 || echo 1
+
+# SVJEDI-GRAPH 1.2.1 with Adam's patches to work around the need for END
+ADD svjedigraph_patched ${work_dir}/svjedigraph
+
+# MONITORING SCRIPT
+COPY ./vm_local_monitoring_script.sh .
