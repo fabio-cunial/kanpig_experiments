@@ -23,10 +23,8 @@ workflow KanpigGenotyper {
         File reference_fai
         Int n_cpu = 16
         Int ram_size_gb = 64
-        Int sizemin = 50
-        Int sizemax = 10000
-        String kanpig_params_singlesample = "--chunksize 1000 --gpenalty 0.02 --hapsim 0.9999 --sizesim 0.90 --seqsim 0.85 --maxpaths 10000"
-        String kanpig_params_multisample =  "--chunksize 500  --gpenalty 0.04 --hapsim 0.97"
+        String kanpig_params_singlesample = "--sizemin 20 --sizemax 10000 --chunksize 1000 --gpenalty 0.02 --hapsim 0.9999 --sizesim 0.90 --seqsim 0.85 --maxpaths 10000"
+        String kanpig_params_multisample =  "--sizemin 50 --sizemax 10000 --chunksize  500 --gpenalty 0.04 --hapsim 0.97"
         File ploidy_bed_female
         File ploidy_bed_male
     }
@@ -45,8 +43,6 @@ workflow KanpigGenotyper {
             reference_fai = reference_fai,
             n_cpu = n_cpu,
             ram_size_gb = ram_size_gb,
-            sizemin = sizemin,
-            sizemax = sizemax,
             kanpig_params_singlesample = kanpig_params_singlesample,
             kanpig_params_multisample = kanpig_params_multisample,
             ploidy_bed_female = ploidy_bed_female,
@@ -72,8 +68,6 @@ task KanpigGenotyperImpl {
         File reference_fai
         Int n_cpu
         Int ram_size_gb
-        Int sizemin
-        Int sizemax
         String kanpig_params_singlesample
         String kanpig_params_multisample
         File ploidy_bed_female
@@ -106,12 +100,12 @@ task KanpigGenotyperImpl {
             PLOIDY_BED=$(echo ~{ploidy_bed_female})
         fi
         if [ ~{is_singlesample} == true ]; then
-            PARAMS=$(echo ~{kanpig_params_singlesample})
+            KANPIG_PARAMS=$(echo ~{kanpig_params_singlesample})
         else
-            PARAMS=$(echo ~{kanpig_params_multisample})
+            KANPIG_PARAMS=$(echo ~{kanpig_params_multisample})
         fi
         export RUST_BACKTRACE="full"
-        ${TIME_COMMAND} ~{docker_dir}/kanpig --threads $(( ${N_THREADS} - 1)) --ploidy-bed ${PLOIDY_BED} --sizemin ~{sizemin} --sizemax ~{sizemax} ${PARAMS} --reference ~{reference_fa} --input ~{input_vcf_gz} --bam ~{alignments_bam} --out tmp1.vcf.gz
+        ${TIME_COMMAND} ~{docker_dir}/kanpig --threads $(( ${N_THREADS} - 1)) --ploidy-bed ${PLOIDY_BED} ${KANPIG_PARAMS} --reference ~{reference_fa} --input ~{input_vcf_gz} --bam ~{alignments_bam} --out tmp1.vcf.gz
         bcftools sort --max-mem ${EFFECTIVE_MEM_GB}G --output-type z tmp1.vcf.gz > ~{output_prefix}.vcf.gz
         tabix -f ~{output_prefix}.vcf.gz
     >>>
