@@ -1,0 +1,10 @@
+HG002.f1_assembly_v2_genbank.dipcall.bed
+HG002.f1_assembly_v2_genbank.dipcall.mainchr.bed
+coverage.bed
+delme.vcf.gz
+delme.vcf.gz.tbi
+dipcall_covered.bed
+hprc.hg002.vcf.gz
+hprc.hg002.vcf.gz.tbi
+trubench_bothbed
+trubench_giabbed
