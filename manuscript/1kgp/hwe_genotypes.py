@@ -5,10 +5,14 @@ import numpy as np
 import truvari
 SZMIN = 50
 SZMAX = 10000
-def parse_vcf(vcf_file):
+def parse_vcf(vcf_file, in_bed):
     vcf = pysam.VariantFile(vcf_file)
+    bed, _ = truvari.build_anno_tree(in_bed)
+    del(bed['chrX'])
+    del(bed['chrY'])
+    vcf_i = truvari.region_filter(vcf, bed)
     genotype_counts = []
-    for entry in vcf:
+    for entry in vcf_i:
         if entry.chrom == 'chrX' or entry.chrom == 'chrY':
             continue
         sz = truvari.entry_size(entry)
@@ -35,5 +39,6 @@ def parse_vcf(vcf_file):
 if __name__ == '__main__':
     in_vcf = sys.argv[1]
     out_jl = sys.argv[2]
-    joblib.dump(parse_vcf(in_vcf), out_jl)
+    in_bed = sys.argv[3]
+    joblib.dump(parse_vcf(in_vcf, in_bed), out_jl)
     print('finished', in_vcf)
