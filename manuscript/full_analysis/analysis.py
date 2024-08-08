@@ -28,13 +28,13 @@ TODO:
 import os
 import ast
 import json
-import argparse
+import shutil
 import logging
+import argparse
 import itertools
 
 import pysam
 import joblib
-import shutil
 import truvari
 
 import numpy as np
@@ -380,9 +380,17 @@ def prepare_truth(truth, bed):
             d = line.strip().split('\t')
             if not ('_' in d[0] or d[0] in ['chrX', 'chrY', 'chrM', 'chrEBV']):
                 fout.write(line)
-
-    # Do I need to remove large SVs before counting neighbors?
-    anno_neigh(truth, "temp/baseline.neigh.vcf")
+    # Remove * alleles since docker is using truvari v4.2.2
+    orig = pysam.VariantFile(truth)
+    out = pysam.VariantFile("temp/tmp.base.vcf", 'w', header=orig.header)
+    for entry in orig:
+        if entry.alts is None or entry.alts[0] == '*':
+            continue
+        if truvari.entry_size(entry) < SIZEMAX * 1.5:
+            out.write(entry)
+    out.close()
+    truvari.compress_index_vcf("temp/tmp.base.vcf")
+    anno_neigh("temp/tmp.base.vcf.gz", "temp/baseline.neigh.vcf")
     return "temp/baseline.neigh.vcf.gz", "temp/new.bed"
 
 
