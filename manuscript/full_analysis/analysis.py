@@ -3,21 +3,23 @@ runs the kanpig manuscript analysis scripts
 
 writes output dict to a joblib file 
 
-Structure:
-    Level1 Keys:
-        - 'base_gt_dist': dict of truvari.GT and counts from the truth vcf
-        - 'dist_gt_dist': dict of truvari.GT and counts from the discovery vcf
-        - 's8': section 8 results. first key is program name
-        - 's5': section 5 results. first key is program name
-    s5 keys: (after you access by program)
-        - 'table': dataframe of overall stats
-        - 'gt_dist': dict of truvari.GT and counts from the genotyped vcf
-        - 'type': table of stats of only the discovery vcf by svtype
-        - 'neigh': table of stats of only the discovery vcf by number of neighbors
-    s8 keys: (after you access by program)
-        - 'type': table of stats by svtype
-        - 'neigh': table of stats by number of neighbors
-        - 'gt_dist': dict of truvari.GT and counts from the genotyped vcf
+Output structure:
+    Level1 keys:
+        - base_gt_dist: dict of truvari.GT and counts from the truth vcf
+        - dist_gt_dist: dict of truvari.GT and counts from the discovery vcf
+        - ts: section 8 results with truth single-sample. first key is program name
+        - ds: section 5 results with discovery single-sample. first key is program name
+        - tm: section 9 results with truth multi-sample. first key is program name
+        - dm: section 7 results with discovery multi-sample. first key is program name
+    Level2 keys:
+        - program name except svjedi on some samples
+    Level3 keys:
+        - type: table of stats by svtype
+        - neigh: table of stats by number of neighbors
+        - gt_dist: dict of truvari.GT and counts from the genotyped vcf
+        - table: dataframe of overall stats (not on ts)
+
+Final values are pandas dataframes with rows being the sample's results sometimes stratified in the case of neigh/type
 """
 import os
 import ast
@@ -129,7 +131,8 @@ def truth_single_compare(truth_fn, bed_fn, vcf_fn):
         v['num_neigh'] = k
         ret.append(v)
     byneigh = pd.DataFrame(ret)
-
+    
+    gtmatrix = pd.DataFrame([gtmatrix])
     return {'type': bytype, 'neigh': byneigh, 'gt_dist': gtmatrix}
 
 
@@ -235,6 +238,7 @@ def pull_gt_dist(vcf_fn, bed_fn, sample=0):
         gt = truvari.get_gt(entry.samples[sample]['GT'])
         matrix[gt.name] += 1
 
+    matrix = pd.DataFrame([matrix])
     return matrix
 
 
@@ -442,19 +446,23 @@ if __name__ == '__main__':
 
     disc_gt_dist = pull_gt_dist(args.discovery, args.bed)
 
-    t1_parts = {}
-    d1_parts = {}
+    ts_parts = {}
+    ds_parts = {}
+    tm_parts = {}
+    dm_parts = {}
     for p in programs:
         logging.info("Processing %s", p)
-        t1_parts[p] = truth_single_compare(
+        ts_parts[p] = truth_single_compare(
             args.truth, args.bed, d_args[f'{p}_8'])
-        d1_parts[p] = bench_single_compare(
+        ds_parts[p] = bench_single_compare(
             args.discovery, args.bed, d_args[f'{p}_5'])
-        # tm_parts p_9
-        # dm_parts p_7
+        # tm_parts[p] =  bench_multi_compare(args.truth, args.bed, d_args[f'{p}_9'], args.sample)
+        # dm_parts[p] =  bench_multi_compare(args.truth, args.bed, d_args[f'{p}_9'], args.sample)
 
     out = {'base_gt_dist': base_gt_dist,
            'dist_gt_dist': disc_gt_dist,
-           's8': t1_parts,
-           's5': d1_parts}
+           'ts': ts_parts,
+           'ds': ds_parts,
+           'tm': tm_parts,
+           'dm': dm_parts}
     joblib.dump(out, args.output)
