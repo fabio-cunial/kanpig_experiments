@@ -20,6 +20,10 @@ Output structure:
         - table: dataframe of overall stats (not on ts)
 
 Final values are pandas dataframes with rows being the sample's results sometimes stratified in the case of neigh/type
+
+TODO:
+    rename section arguments to the [t|d][s|m] tags
+    don't make every parameter required and only make the stats from what's given
 """
 import os
 import ast
@@ -95,7 +99,9 @@ def truth_single_compare(truth_fn, bed_fn, vcf_fn):
         gt_comp = truvari.get_gt(entry.samples[1]["GT"])
         gtmatrix[gt_comp.name] += 1
         svtype = truvari.entry_variant_type(entry).name
-
+        # Only parse DEL/INS
+        if svtype not in m_cnt:
+            continue
         if None in entry.samples[0]["GT"]:
             m_cnt[svtype]["Filtered"] += 1
             m_cnt['TOT']["Filtered"] += 1
@@ -131,7 +137,7 @@ def truth_single_compare(truth_fn, bed_fn, vcf_fn):
         v['num_neigh'] = k
         ret.append(v)
     byneigh = pd.DataFrame(ret)
-    
+
     gtmatrix = pd.DataFrame([gtmatrix])
     return {'type': bytype, 'neigh': byneigh, 'gt_dist': gtmatrix}
 
@@ -256,6 +262,8 @@ def dir_count(vcf_fn, is_tp, m_cnt, m_neigh_cnt, sample=0):
             state = 'Discordant'
 
         svtype = truvari.entry_variant_type(entry).name
+        if svtype not in m_cnt:
+            continue
         m_cnt[svtype][state] += 1
         m_cnt['TOT'][state] += 1
         numneigh = min(entry.info['NumNeighbors'], NEIGHLIMIT-1)
@@ -265,7 +273,7 @@ def dir_count(vcf_fn, is_tp, m_cnt, m_neigh_cnt, sample=0):
         gt = truvari.get_gt(entry.samples[sample]['GT'])
 
         # We can only do allele state on matched variants.
-        # actually, all the FPs can be parsed...
+        # actually, all the FNs can be parsed... I think...
         if gt == truvari.GT.HET:
             b = (0, 1)
             if state == 'Discordant':
@@ -277,11 +285,10 @@ def dir_count(vcf_fn, is_tp, m_cnt, m_neigh_cnt, sample=0):
             if state == 'Discordant':
                 c = (0, 1)
             else:
-                b = (1, 1)
+                c = (1, 1)
 
         if not is_tp:
             c = (0, 0)
-            continue
 
         for i, j in zip(b, c):
             state = "T" if i == j else "F"
@@ -378,6 +385,7 @@ def prepare_truth(truth, bed):
     anno_neigh(truth, "temp/baseline.neigh.vcf")
     return "temp/baseline.neigh.vcf.gz", "temp/new.bed"
 
+
 def anno_neigh(in_vcf, out_fn):
     """
     annotate numneigh
@@ -398,6 +406,30 @@ def clean_svjedi_8(orig_vcf):
     pysam.tabix_index(out_vcf, force=True, preset="vcf")
     return "temp/svjedi08.vcf.gz"
 
+def clean_sniffles_79(orig_vcf):
+    """
+    Sniffles keeps every sample name in the vcf but only populates the first one.
+    """
+    bname = "temp/tmp." + os.path.basename(orig_vcf)[:-len('.gz')]
+    truvari.cmd_exe(f"gunzip -c {orig_vcf} | cut -f1-10 > {bname}", pipefail=True)
+    fname = "temp/" + os.path.basename(orig_vcf)[:-len('.gz')]
+    remove_big(bname, fname)
+    # This is a bigfile I don't want to keep
+    os.remove(bname)
+    return fname + '.gz'
+
+def remove_big(orig_vcf, dest_vcf):
+    """
+    Take out enormous VCF entries which we're not analyzing anyway
+    WARNING: will remove the original
+    """
+    vcf = pysam.VariantFile(orig_vcf)
+    out = pysam.VariantFile(dest_vcf, 'w', header=vcf.header)
+    for entry in vcf:
+        if truvari.entry_size(entry) < SIZEMAX * 1.5:
+            out.write(entry)
+    out.close()
+    truvari.compress_index_vcf(dest_vcf)
 
 if __name__ == '__main__':
     programs = ['kanpig', 'svjedi', 'sniffles', 'cutesv']
@@ -414,10 +446,7 @@ if __name__ == '__main__':
     parser.add_argument("--discovery", metavar="DISC", type=str, required=True,
                         help="Single sample discovery vcf")
     for i in programs:
-        # 7, 9... which will just use pretty much the same thing as 5...
-        for j in ['5', '8']:
-            # Which means we need to parse the tp-base fn to get neigh and maybe type...
-            # HERE
+        for j in ['5', '7', '8', '9']:
             parser.add_argument(f"--{i}-{j}", metavar=f"{i[0].upper()}{j}", type=str, required=True,
                                 help=f"{i} section {j} vcf")
     args = parser.parse_args()
@@ -430,8 +459,9 @@ if __name__ == '__main__':
 
     args.truth, args.bed = prepare_truth(args.truth, args.bed)
 
-    anno_neigh(args.discovery, "temp/discovery.neigh.vcf")
-    args.discovery = "temp/discovery.neigh.vcf.gz"
+    # Should remove big from here, also?
+    #anno_neigh(args.discovery, "temp/discovery.neigh.vcf")
+    #args.discovery = "temp/discovery.neigh.vcf.gz"
 
     base_gt_dist = pull_gt_dist(args.truth, args.bed)
 
@@ -444,6 +474,24 @@ if __name__ == '__main__':
     else:
         d_args['svjedi_8'] = clean_svjedi_8(d_args['svjedi_8'])
 
+    # Some sniffles results need headers fixed
+    logging.info("Cleaning sniffles")
+    d_args['sniffles_7'] = clean_sniffles_79(d_args['sniffles_7'])
+    d_args['sniffles_9'] = clean_sniffles_79(d_args['sniffles_9'])
+    
+    # Section 7 and section 9 need to have their bigs removed for speed
+    logging.info("Removing big variants")
+    for p in programs:
+        if p == 'sniffles':
+            # already done above
+            continue
+        for j in ['7', '9']:
+            fname = d_args[f'{p}_{j}']
+            bname = "temp/nobig." + os.path.basename(fname)[:-len(".gz")]
+            remove_big(fname, bname)
+            d_args[f'{p}_{j}'] = bname + '.gz'
+
+    # okay, back to processing
     disc_gt_dist = pull_gt_dist(args.discovery, args.bed)
 
     ts_parts = {}
@@ -455,9 +503,12 @@ if __name__ == '__main__':
         ts_parts[p] = truth_single_compare(
             args.truth, args.bed, d_args[f'{p}_8'])
         ds_parts[p] = bench_single_compare(
-            args.discovery, args.bed, d_args[f'{p}_5'])
-        # tm_parts[p] =  bench_multi_compare(args.truth, args.bed, d_args[f'{p}_9'], args.sample)
-        # dm_parts[p] =  bench_multi_compare(args.truth, args.bed, d_args[f'{p}_9'], args.sample)
+            args.truth, args.bed, d_args[f'{p}_5'])
+        tm_parts[p] = bench_multi_compare(
+            args.truth, args.bed, d_args[f'{p}_9'], args.sample)
+        dm_parts[p] = bench_multi_compare(
+            args.truth, args.bed, d_args[f'{p}_7'], args.sample)
+    ds_parts['orig'] = bench_single_compare(args.truth, args.bed, args.discovery)
 
     out = {'base_gt_dist': base_gt_dist,
            'dist_gt_dist': disc_gt_dist,
