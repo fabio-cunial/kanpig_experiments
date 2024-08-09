@@ -1,7 +1,7 @@
 """
 Given stats results from analysis.py, turn into giant flat tables
 
-stats should have name SAMPLE.COVERAGE.stats.jl
+stats should have name SAMPLE.COVERAGE.TECH.stats.jl
 Where SAMPLE and COVERAGE will be added as columns to the tables
 
 Creates 4 tables: gt_dist.table.txt, svtype.table.txt, neigh.table.txt, intersect.table.txt
@@ -17,24 +17,28 @@ svtype = []
 neigh = []
 intersect = []
 
-def make_frame(rows, sample, coverage, exp):
+def make_frame(rows, sample, coverage, exp, tech, destination):
+    if not rows:
+        return
     frame = pd.concat(rows)
     frame['sample'] = sample
+    frame['technology'] = tech
     frame['coverage'] = coverage
     frame['experiment'] = exp
     frame.reset_index(drop=True, inplace=True)
-    return frame
+    destination.append(frame)
 
 for i in sys.argv[1:]:
     name = os.path.basename(i)
-    sample, coverage, _, _ = name.split('.')
+    sample, coverage, tech, _, _ = name.split('.')
     data = joblib.load(i)
 
     # Extract baseline genotype dist
     base = data['base_gt_dist']
     base['program'] = 'baseline'
-    base['coverage'] = coverage
     base['sample'] = sample
+    base['technology'] = tech
+    base['coverage'] = coverage
     base['experiment'] = 'truth'
     gt_dist.append(base)
 
@@ -60,11 +64,11 @@ for i in sys.argv[1:]:
                 d['program'] = key
                 in_rows.append(d)
 
-        gt_dist.append(make_frame(gt_rows, sample, coverage, exp))
-        svtype.append(make_frame(ty_rows, sample, coverage, exp))
-        neigh.append(make_frame(ne_rows, sample, coverage, exp))
+        make_frame(gt_rows, sample, coverage, exp, tech, gt_dist)
+        make_frame(ty_rows, sample, coverage, exp, tech, svtype)
+        make_frame(ne_rows, sample, coverage, exp, tech, neigh)
         if exp != 'ts':
-            intersect.append(make_frame(in_rows, sample, coverage, exp))
+            make_frame(in_rows, sample, coverage, exp, tech, intersect)
 
 gt_dist = pd.concat(gt_dist)
 gt_dist.to_csv("gt_dist.table.txt", sep='\t', index=False)

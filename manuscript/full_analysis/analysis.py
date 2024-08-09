@@ -450,9 +450,13 @@ if __name__ == '__main__':
                         help="Dipcall high confidence bed")
     parser.add_argument("--discovery", metavar="DISC", type=str, required=True,
                         help="Single sample discovery vcf")
+    parser.add_argument("--skip-multi", action="store_true",
+                        help="Don't run multi-sample experiments in 7 and 9. relevant for ont")
+    parser.add_argument("--force-svjedi", action="store_true",
+                        help="Ignore the internal svjedi subset and check it")
     for i in programs:
         for j in ['5', '7', '8', '9']:
-            parser.add_argument(f"--{i}-{j}", metavar=f"{i[0].upper()}{j}", type=str, required=True,
+            parser.add_argument(f"--{i}-{j}", metavar=f"{i[0].upper()}{j}", type=str,
                                 help=f"{i} section {j} vcf")
     args = parser.parse_args()
     truvari.setup_logging(show_version=False)
@@ -474,21 +478,22 @@ if __name__ == '__main__':
     d_args = dict(args._get_kwargs())
 
     # Can't process some svjedi
-    if args.sample not in HAS_SVJEDI:
+    if not args.force_svjedi and args.sample not in HAS_SVJEDI:
         programs.remove('svjedi')
     else:
         d_args['svjedi_8'] = clean_svjedi_8(d_args['svjedi_8'])
 
     # Some sniffles results need headers fixed
-    logging.info("Cleaning sniffles")
-    d_args['sniffles_7'] = clean_sniffles_79(d_args['sniffles_7'])
-    d_args['sniffles_9'] = clean_sniffles_79(d_args['sniffles_9'])
+    if not args.skip_multi:
+        logging.info("Cleaning sniffles")
+        d_args['sniffles_7'] = clean_sniffles_79(d_args['sniffles_7'])
+        d_args['sniffles_9'] = clean_sniffles_79(d_args['sniffles_9'])
     
     # Section 7 and section 9 need to have their bigs removed for speed
     logging.info("Removing big variants")
     for p in programs:
-        if p == 'sniffles':
-            # already done above
+        if p == 'sniffles' or args.skip_multi:
+            # already done above, or we're not doing it
             continue
         for j in ['7', '9']:
             fname = d_args[f'{p}_{j}']
@@ -508,10 +513,15 @@ if __name__ == '__main__':
             args.truth, args.bed, d_args[f'{p}_8'])
         ds_parts[p] = bench_single_compare(
             args.truth, args.bed, d_args[f'{p}_5'])
+
+        if args.skip_multi:
+            continue
+
         tm_parts[p] = bench_multi_compare(
-            args.truth, args.bed, d_args[f'{p}_9'], args.sample)
+                args.truth, args.bed, d_args[f'{p}_9'], args.sample)
         dm_parts[p] = bench_multi_compare(
             args.truth, args.bed, d_args[f'{p}_7'], args.sample)
+
     ds_parts['orig'] = bench_single_compare(args.truth, args.bed, args.discovery)
 
     out = {'base_gt_dist': base_gt_dist,
