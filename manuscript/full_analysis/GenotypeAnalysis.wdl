@@ -1,16 +1,5 @@
 version 1.0
 
-
-# Resources used when run on a 16-virtual-core, 64-GB machine:
-# [input, time, cost, CPU, RAM]
-#
-# single sample 32x CCS         3m      $ ???       660 %      1 GB 
-# single sample 32x ONT         
-# truvari collapse 32x CCS                
-# truvari collapse 32x ONT                
-# bcftools merge 32x CCS   
-# bcftools merge 32x ONT   
-#
 workflow GenotypeAnalysis {
     input {
 	String sample
@@ -35,6 +24,10 @@ workflow GenotypeAnalysis {
         File sniffles_9
     }
     parameter_meta {
+	sample: "Name of sample. Should be found in e.g. merged VCFs"
+	truth: "Dipcall SVs called from assembly"
+	bed: "High confidence bed from dipcall"
+	discovery: "Sniffles discovery VCF run on sample's reads and genotyped for S5 and S7"
     }
     
     call GenotypeAnalysisImpl {
