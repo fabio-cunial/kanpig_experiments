@@ -6,7 +6,6 @@ writes output dict to a joblib file
 Output structure:
     Level1 keys:
         - base_gt_dist: dict of truvari.GT and counts from the truth vcf
-        - dist_gt_dist: dict of truvari.GT and counts from the discovery vcf
         - ts: section 8 results with truth single-sample. first key is program name
         - ds: section 5 results with discovery single-sample. first key is program name
         - tm: section 9 results with truth multi-sample. first key is program name
@@ -142,7 +141,7 @@ def truth_single_compare(truth_fn, bed_fn, vcf_fn):
     return {'type': bytype, 'neigh': byneigh, 'gt_dist': gtmatrix}
 
 
-def parse_summary_json(path):
+def parse_summary_json(path, sample=0):
     with open(path + '/summary.json', 'r') as fh:
         d = json.load(fh)
 
@@ -172,6 +171,16 @@ def parse_summary_json(path):
             d['Discordant'] -= 1
         elif 1 in cgt:
             d['Present TP'] += 1
+    
+    v = pysam.VariantFile(path + "/fn.vcf.gz")
+    # Assuming FN were genotyped as reference homozygous by genotyper though some could be missing
+    for entry in v:
+        cgt = str(entry.samples[sample]['GT'])
+        if cgt not in d['gt_matrix']:
+            d['gt_matrix'][cgt] = {'(0, 0)': 0}
+        if '(0, 0)' not in d['gt_matrix'][cgt]:
+            d['gt_matrix'][cgt]['(0, 0)'] = 0
+        d['gt_matrix'][cgt]['(0, 0)'] += 1
 
     d['gt_accuracy'] = d['gt_concordance']
     d['gt_concordance'] = d['Concordant'] / (d['Concordant'] + d['Discordant'])
@@ -206,25 +215,13 @@ def parse_summary_json(path):
     return pd.DataFrame([d])
 
 
-def run_truvari_single(base_vcf, base_bed, comp_vcf):
+def run_truvari(base_vcf, base_bed, comp_vcf):
     # need a temp dir to put things in
     logging.info("Running truvari bench")
     bench_dir = truvari.make_temp_filename()
     r = truvari.cmd_exe(f"""
-        truvari bench -b {base_vcf} --includebed {base_bed} \
+        truvari bench -b {base_vcf} --includebed {base_bed} --no-ref a --pick ac \
             --sizemin {SIZEMIN} --sizefilt {SIZEMIN} --sizemax {SIZEMAX} -c {comp_vcf} --short -o {bench_dir}
-    """)
-    return bench_dir
-
-
-def run_truvari_multi(base_vcf, base_bed, comp_vcf):
-    # need a temp dir to put things in
-    logging.info("Running truvari bench")
-    bench_dir = truvari.make_temp_filename()
-    r = truvari.cmd_exe(f"""
-        truvari bench -b {base_vcf} --includebed {base_bed} \
-            --no-ref a --pick ac --sizemin {SIZEMIN} --sizefilt {SIZEMIN} \
-            --sizemax {SIZEMAX} -c {comp_vcf} --short -o {bench_dir}
     """)
     return bench_dir
 
@@ -329,7 +326,7 @@ def bench_single_compare(base_fn, bed_fn, vcf_fn):
     Run truvari bench and then calculate the statistics
     """
     gtmatrix = pull_gt_dist(vcf_fn, bed_fn)
-    bdir = run_truvari_single(base_fn, bed_fn, vcf_fn)
+    bdir = run_truvari(base_fn, bed_fn, vcf_fn)
     ty, neigh = parse_bench_dir(bdir)
     return {'table': parse_summary_json(bdir), 'type': ty, 'neigh': neigh, 'gt_dist': gtmatrix}
 
@@ -339,9 +336,9 @@ def bench_multi_compare(base_fn, bed_fn, vcf_fn, sample):
     Run truvari bench and then calculate the statistics
     """
     gtmatrix = pull_gt_dist(vcf_fn, bed_fn)
-    bdir = run_truvari_multi(base_fn, bed_fn, vcf_fn)
+    bdir = run_truvari(base_fn, bed_fn, vcf_fn)
     ty, neigh = parse_bench_dir(bdir, sample)
-    return {'table': parse_summary_json(bdir), 'type': ty, 'neigh': neigh, 'gt_dist': gtmatrix}
+    return {'table': parse_summary_json(bdir, sample), 'type': ty, 'neigh': neigh, 'gt_dist': gtmatrix}
 
 
 def add_summary_08(data):
@@ -500,7 +497,6 @@ if __name__ == '__main__':
             d_args[f'{p}_{j}'] = bname + '.gz'
 
     # okay, back to processing
-    disc_gt_dist = pull_gt_dist(args.discovery, args.bed)
 
     ts_parts = {}
     ds_parts = {}
@@ -519,7 +515,6 @@ if __name__ == '__main__':
     ds_parts['orig'] = bench_single_compare(args.truth, args.bed, args.discovery)
 
     out = {'base_gt_dist': base_gt_dist,
-           'dist_gt_dist': disc_gt_dist,
            'ts': ts_parts,
            'ds': ds_parts,
            'tm': tm_parts,
