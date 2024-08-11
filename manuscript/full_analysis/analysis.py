@@ -436,6 +436,100 @@ def remove_big(orig_vcf, dest_vcf):
     out.close()
     truvari.compress_index_vcf(dest_vcf)
 
+def initial_clean(args, programs):
+    """
+    Universal cleaning
+    """
+    logging.info("Running analysis")
+    if not os.path.exists('temp'):
+        os.mkdir('temp')
+    # Should I clean temp? nah.
+    args.truth, args.bed = prepare_truth(args.truth, args.bed)
+
+    # Easier to index in a loop
+    d_args = dict(args._get_kwargs())
+
+    # Can't process some svjedi
+    if not args.force_svjedi and args.sample not in HAS_SVJEDI:
+        programs.remove('svjedi')
+    else:
+        d_args['svjedi_8'] = clean_svjedi_8(d_args['svjedi_8'])
+
+    # Some sniffles results need headers fixed
+    if not args.skip_multi:
+        logging.info("Cleaning sniffles")
+        d_args['sniffles_7'] = clean_sniffles_79(d_args['sniffles_7'])
+        d_args['sniffles_9'] = clean_sniffles_79(d_args['sniffles_9'])
+
+    # Section 7 and section 9 need to have their bigs removed for speed
+    logging.info("Removing big variants")
+    for p in programs:
+        if p == 'sniffles' or args.skip_multi:
+            # already done above, or we're not doing it
+            continue
+        for j in ['7', '9']:
+            fname = d_args[f'{p}_{j}']
+            bname = "temp/nobig." + os.path.basename(fname)[:-len(".gz")]
+            remove_big(fname, bname)
+            d_args[f'{p}_{j}'] = bname + '.gz'
+
+    return d_args
+
+def overall(d_args):
+    # This is an analysis, not a clean
+    base_gt_dist = pull_gt_dist(d_args['truth'], d_args['bed'])
+
+    # okay, back to processing
+    ts_parts = {}
+    ds_parts = {}
+    tm_parts = {}
+    dm_parts = {}
+    for p in programs:
+        logging.info("Processing %s", p)
+        ts_parts[p] = truth_single_compare(
+            d_args['truth'], d_args['bed'], d_args[f'{p}_8'])
+        ds_parts[p] = bench_single_compare(
+            d_args['truth'], d_args['bed'], d_args[f'{p}_5'])
+
+        if d_args['skip_multi']:
+            continue
+
+        tm_parts[p] = bench_multi_compare(
+                d_args['truth'], d_args['bed'], d_args[f'{p}_9'], d_args['sample'])
+        dm_parts[p] = bench_multi_compare(
+            d_args['truth'], d_args['bed'], d_args[f'{p}_7'], d_args['sample'])
+
+    ds_parts['orig'] = bench_single_compare(d_args['truth'], d_args['bed'], d_args['discovery'])
+
+    out = {'base_gt_dist': base_gt_dist,
+           'ts': ts_parts,
+           'ds': ds_parts,
+           'tm': tm_parts,
+           'dm': dm_parts}
+    return out
+
+def split_by_tr(d_args):
+    """
+    Can I get away with just changing the bedfiles?
+    I believe everything works off the bed file,
+    so if I just make it 
+    trs completely within bed
+    and bed subtract trs
+    That should work.. Then I don't have to do any more vcf work?
+    To do this, I need to first confirm that nobody works without a bed
+    """
+    m_bed = d_args['bed']
+    m_tr = d_args['trs']
+    #Check these params
+    ret1 = truvari.cmd_exe(f"bedtools intersect -f 1 -a {m_tr} -b {m_bed} > temp/tr.bed")
+    ret2 = truvari.cmd_exe(f"bedtools subtract -a {m_bed} -b {m_tr} > temp/nontr.bed")
+    arg1 = dict(d_args)
+    arg1['bed'] = "temp/tr.bed"
+    arg2 = dict(d_args)
+    arg2['bed'] = "temp/nontr.bed"
+
+    return arg1, arg2
+
 if __name__ == '__main__':
     programs = ['kanpig', 'svjedi', 'sniffles', 'cutesv']
     parser = argparse.ArgumentParser(prog="analysis", description=__doc__,
@@ -454,79 +548,24 @@ if __name__ == '__main__':
                         help="Don't run multi-sample experiments in 7 and 9. relevant for ont")
     parser.add_argument("--force-svjedi", action="store_true",
                         help="Ignore the internal svjedi subset and check it")
+    parser.add_argument("--trs", type=str, required=False,
+                        help="Bed file of TRs for additional stratification")
     for i in programs:
         for j in ['5', '7', '8', '9']:
             parser.add_argument(f"--{i}-{j}", metavar=f"{i[0].upper()}{j}", type=str,
                                 help=f"{i} section {j} vcf")
     args = parser.parse_args()
     truvari.setup_logging(show_version=False)
-
-    logging.info("Running analysis")
-    if not os.path.exists('temp'):
-        os.mkdir('temp')
-    # Should I clean temp? nah.
-
-    args.truth, args.bed = prepare_truth(args.truth, args.bed)
-
-    # Should remove big from here, also?
-    #anno_neigh(args.discovery, "temp/discovery.neigh.vcf")
-    #args.discovery = "temp/discovery.neigh.vcf.gz"
-
-    base_gt_dist = pull_gt_dist(args.truth, args.bed)
-
-    # Easier to index in a loop
-    d_args = dict(args._get_kwargs())
-
-    # Can't process some svjedi
-    if not args.force_svjedi and args.sample not in HAS_SVJEDI:
-        programs.remove('svjedi')
-    else:
-        d_args['svjedi_8'] = clean_svjedi_8(d_args['svjedi_8'])
-
-    # Some sniffles results need headers fixed
-    if not args.skip_multi:
-        logging.info("Cleaning sniffles")
-        d_args['sniffles_7'] = clean_sniffles_79(d_args['sniffles_7'])
-        d_args['sniffles_9'] = clean_sniffles_79(d_args['sniffles_9'])
     
-    # Section 7 and section 9 need to have their bigs removed for speed
-    logging.info("Removing big variants")
-    for p in programs:
-        if p == 'sniffles' or args.skip_multi:
-            # already done above, or we're not doing it
-            continue
-        for j in ['7', '9']:
-            fname = d_args[f'{p}_{j}']
-            bname = "temp/nobig." + os.path.basename(fname)[:-len(".gz")]
-            remove_big(fname, bname)
-            d_args[f'{p}_{j}'] = bname + '.gz'
-
-    # okay, back to processing
-
-    ts_parts = {}
-    ds_parts = {}
-    tm_parts = {}
-    dm_parts = {}
-    for p in programs:
-        logging.info("Processing %s", p)
-        ts_parts[p] = truth_single_compare(
-            args.truth, args.bed, d_args[f'{p}_8'])
-        ds_parts[p] = bench_single_compare(
-            args.truth, args.bed, d_args[f'{p}_5'])
-
-        if args.skip_multi:
-            continue
-
-        tm_parts[p] = bench_multi_compare(
-                args.truth, args.bed, d_args[f'{p}_9'], args.sample)
-        dm_parts[p] = bench_multi_compare(
-            args.truth, args.bed, d_args[f'{p}_7'], args.sample)
-
-    ds_parts['orig'] = bench_single_compare(args.truth, args.bed, args.discovery)
-
-    out = {'base_gt_dist': base_gt_dist,
-           'ts': ts_parts,
-           'ds': ds_parts,
-           'tm': tm_parts,
-           'dm': dm_parts}
+    d_args = initial_clean(args, programs)
+    out = {}
+    logging.info("Processing all")
+    out['all'] = overall(d_args)
+    if args.trs:
+        args_tr, args_nontr = split_by_tr(d_args)
+        logging.info("Processing trs")
+        out['tr'] = overall(args_tr)
+        logging.info("Processing non-trs")
+        out['non_tr'] = overall(args_nontr)
     joblib.dump(out, args.output)
+

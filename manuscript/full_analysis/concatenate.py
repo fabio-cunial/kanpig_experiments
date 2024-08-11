@@ -32,7 +32,8 @@ for i in sys.argv[1:]:
     name = os.path.basename(i)
     sample, coverage, tech, _, _ = name.split('.')
     data = joblib.load(i)
-
+    # This now needs to loop through trs and non-trs
+    data = data['all']
     # Extract baseline genotype dist
     base = data['base_gt_dist']
     base['program'] = 'baseline'
@@ -41,27 +42,28 @@ for i in sys.argv[1:]:
     base['coverage'] = coverage
     base['experiment'] = 'truth'
     gt_dist.append(base)
-
+    
     for exp in ['ts', 'ds', 'tm', 'dm']:
         gt_rows = []
         ty_rows = []
         ne_rows = []
         in_rows = []
-        for key in data[exp]:
-            d = data[exp][key]['gt_dist']
-            d['program'] = key
+        for prog in data[exp]:
+            d = data[exp][prog]['gt_dist']
+            d['program'] = prog
             gt_rows.append(d)
 
-            d = data[exp][key]['type']
-            d['program'] = key
+            d = data[exp][prog]['type']
+            d['program'] = prog
             ty_rows.append(d)
 
-            d = data[exp][key]['neigh']
-            d['program'] = key
+            d = data[exp][prog]['neigh']
+            d['program'] = prog
             ne_rows.append(d)
+
             if exp != 'ts':
-                d = data[exp][key]['table']
-                d['program'] = key
+                d = data[exp][prog]['table']
+                d['program'] = prog
                 in_rows.append(d)
 
         make_frame(gt_rows, sample, coverage, exp, tech, gt_dist)
