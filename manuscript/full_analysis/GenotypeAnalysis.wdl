@@ -6,6 +6,7 @@ workflow GenotypeAnalysis {
         File truth_vcf
 	File truth_tbi
         File bed
+	File trs
         File discovery_vcf
         File cutesv_5_vcf
         File cutesv_5_tbi
@@ -45,6 +46,7 @@ workflow GenotypeAnalysis {
 	sample: "Name of sample. Should be found in e.g. merged VCFs"
 	truth: "Dipcall SVs called from assembly"
 	bed: "High confidence bed from dipcall"
+	trs: "Tandem repeats bed file")
 	discovery: "Sniffles discovery VCF run on sample's reads and genotyped for S5 and S7"
     }
 
@@ -53,6 +55,7 @@ workflow GenotypeAnalysis {
 	    sample = sample,
 	    truth = truth_vcf,
 	    bed = bed,
+	    trs = trs,
 	    discovery = discovery_vcf,
 	    cutesv_5 = cutesv_5_vcf, 
 	    svjedi_5 = svjedi_5_vcf,
@@ -100,6 +103,7 @@ task GenotypeAnalysisImpl {
 	String sample
         File truth
         File bed
+	File trs
         File discovery
         File cutesv_5
         File svjedi_5
@@ -160,6 +164,7 @@ task GenotypeAnalysisImpl {
 	    --sample ~{sample} \
 	    --truth ~{truth} \
 	    --bed ~{bed} \
+	    --trs ~{trs} \
 	    --discovery ~{discovery} \
 	    --cutesv-5 ~{cutesv_5} \
 	    --svjedi-5 ~{svjedi_5} \
