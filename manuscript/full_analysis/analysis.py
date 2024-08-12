@@ -521,7 +521,7 @@ def split_by_tr(d_args):
     m_bed = d_args['bed']
     m_tr = d_args['trs']
     #Check these params
-    ret1 = truvari.cmd_exe(f"bedtools intersect -f 1 -a {m_tr} -b {m_bed} > temp/tr.bed")
+    ret1 = truvari.cmd_exe(f"bedtools intersect -u -f 1 -a {m_tr} -b {m_bed} > temp/tr.bed")
     ret2 = truvari.cmd_exe(f"bedtools subtract -a {m_bed} -b {m_tr} > temp/nontr.bed")
     arg1 = dict(d_args)
     arg1['bed'] = "temp/tr.bed"
