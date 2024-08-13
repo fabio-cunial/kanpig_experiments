@@ -46,7 +46,7 @@ workflow GenotypeAnalysis {
 	sample: "Name of sample. Should be found in e.g. merged VCFs"
 	truth: "Dipcall SVs called from assembly"
 	bed: "High confidence bed from dipcall"
-	trs: "Tandem repeats bed file")
+	trs: "Tandem repeats bed file"
 	discovery: "Sniffles discovery VCF run on sample's reads and genotyped for S5 and S7"
     }
 
