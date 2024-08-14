@@ -1,0 +1,6 @@
+adotto_TRregions_v1.2.bed.gz
+data/
+gt_dist.table.txt
+intersect.table.txt
+run_analysis.sh
+temp/
