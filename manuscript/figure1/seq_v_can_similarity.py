@@ -73,6 +73,8 @@ def analyze_group(cur_group):
         return
 
     for i, j in itertools.combinations(cur_group, 2):
+        if max(truvari.entry_distance(i, j)) > MAXDIST:
+            continue
         seq_sim = round(truvari.entry_seq_similarity(i, j), 4)
 
         k1 = kfeat(i.alts[0], KMER)
@@ -83,20 +85,27 @@ def analyze_group(cur_group):
         sz2 = truvari.entry_size(j)
         szbin = truvari.get_sizebin(max(sz1, sz2))
         szsim = round(truvari.sizesim(sz1, sz2)[0], 4)
-        if abs(seq_sim - can_sim) > .5:
-            sys.stderr.write(f"{str(i)}\n{str(j)}\n")
-            print(szbin, szsim, seq_sim, can_sim, sep='\t', file=sys.stderr)
-        print(szbin, szsim, seq_sim, can_sim, sep='\t')
+        #if abs(seq_sim - can_sim) > .5:
+            #sys.stderr.write(f"{str(i)}\n{str(j)}\n")
+            #print(szbin, szsim, seq_sim, can_sim, sep='\t', file=sys.stderr)
+        print(szbin, szsim, seq_sim, can_sim, i.pos == j.pos, sep='\t')
 
 if __name__ == '__main__':
-    fn = "../estab_benchmark/giab_comp/GRCh38_HG002-T2TQ100-V1.0_stvar.vcf.gz"
-    v = pysam.VariantFile(fn)
-    print("szbin\tszsim\tseqsim\tcansim")
+    fn = "../estab_benchmark/giab_comp/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
+    bed_fn = "../estab_benchmark/giab_comp/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
+
+    vcf_i = pysam.VariantFile(fn)
+    #bed = truvari.build_region_tree(vcfA=vcf, includebed=bed_fn)
+    #vcf_i = truvari.region_filter(vcf, bed)
+
+    print("szbin\tszsim\tseqsim\tcansim\tsame_start")
 
     last_pos = 0
     last_chrom = None
     cur_group = []
-    for entry in v:
+    for entry in vcf_i:
+        if entry.alts is None or entry.alts[0] == '*':
+            continue
         if truvari.entry_variant_type(entry) != truvari.SV.INS:
             continue
         if truvari.entry_size(entry) < SIZEMIN:
