@@ -301,9 +301,9 @@ def parse_bench_dir(bdir, sample=0):
     This is only considering the baseline variants
     """
     _, m_cnt, m_neigh_cnt = make_tables()
-    dir_count(os.path.join(bdir, 'tp-base.vcf.gz'),
+    dir_count(os.path.join(bdir, 'tp-comp.vcf.gz'),
               True, m_cnt, m_neigh_cnt, sample)
-    dir_count(os.path.join(bdir, 'fn.vcf.gz'),
+    dir_count(os.path.join(bdir, 'fp.vcf.gz'),
               False, m_cnt, m_neigh_cnt, sample)
 
     ret = []
@@ -337,7 +337,9 @@ def bench_multi_compare(base_fn, bed_fn, vcf_fn, sample):
     """
     gtmatrix = pull_gt_dist(vcf_fn, bed_fn)
     bdir = run_truvari(base_fn, bed_fn, vcf_fn)
-    ty, neigh = parse_bench_dir(bdir, sample)
+    # Provide sample when dealing with baseline, otherwise, have to assume 0
+    # This is important for if/when you do relative to base and relative to comp
+    ty, neigh = parse_bench_dir(bdir, 0)
     return {'table': parse_summary_json(bdir, sample), 'type': ty, 'neigh': neigh, 'gt_dist': gtmatrix}
 
 
@@ -472,6 +474,19 @@ def initial_clean(args, programs):
             bname = "temp/nobig." + os.path.basename(fname)[:-len(".gz")]
             remove_big(fname, bname)
             d_args[f'{p}_{j}'] = bname + '.gz'
+    
+    logging.info("Num neighbors")
+    for p in programs:
+        for j in ['5', '7', '8', '9']:
+            fname = d_args[f'{p}_{j}']
+            oname = "temp/numneigh." + os.path.basename(fname)[:-len(".gz")]
+            anno_neigh(fname, oname)
+            d_args[f'{p}_{j}'] = oname + '.gz'
+    # And the initial discovery
+    fname = d_args[f'discovery']
+    oname = "temp/numneigh." + os.path.basename(fname)[:-len(".gz")]
+    anno_neigh(fname, oname)
+    d_args[f'discovery'] = oname + '.gz'
 
     return d_args
 
