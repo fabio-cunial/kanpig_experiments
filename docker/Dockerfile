@@ -155,3 +155,4 @@ ADD svjedigraph_patched ${work_dir}/svjedigraph
 
 # MONITORING SCRIPT
 COPY ./vm_local_monitoring_script.sh .
+COPY ../manuscript/full_analysis/analysis.py .

@@ -1,0 +1,113 @@
+[M::main::0.359*1.00] loaded the graph from "./outputfile.gfa"
+[M::mg_index::5.709*1.00] indexed the graph
+[M::mg_opt_update::6.103*1.00] occ_max1=142; lc_max_occ=2
+[M::worker_pipeline::171.295*1.00] mapped 24309 sequences
+[M::worker_pipeline::255.364*1.00] mapped 24150 sequences
+[M::worker_pipeline::528.182*1.00] mapped 24143 sequences
+[M::worker_pipeline::16353.185*1.00] mapped 23817 sequences
+[M::worker_pipeline::16437.549*1.00] mapped 24166 sequences
+[M::worker_pipeline::16538.450*1.00] mapped 24123 sequences
+[M::worker_pipeline::16577.882*1.00] mapped 8657 sequences
+[M::main] Version: 0.21-r606
+[M::main] CMD: minigraph -x lr -t1 ./outputfile.gfa HG002_chr1.fastq
+[M::main] Real time: 16577.957 sec; CPU: 16574.470 sec; Peak RSS: 4.197 GB
+Genotyped svs: 1697
+Constructing variation graph...
+Mapping reads on graph...
+Filtering alignment file...
+Genotyping SVs...
+[M::main::0.359*1.00] loaded the graph from "./outputfile.gfa"
+[M::mg_index::5.717*1.00] indexed the graph
+[M::mg_opt_update::6.112*1.00] occ_max1=142; lc_max_occ=2
+[M::worker_pipeline::171.392*1.00] mapped 24309 sequences
+[M::worker_pipeline::255.419*1.00] mapped 24150 sequences
+[M::worker_pipeline::528.421*1.00] mapped 24143 sequences
+[M::worker_pipeline::16351.703*1.00] mapped 23817 sequences
+[M::worker_pipeline::16435.784*1.00] mapped 24166 sequences
+[M::worker_pipeline::16536.474*1.00] mapped 24123 sequences
+[M::worker_pipeline::16575.800*1.00] mapped 8657 sequences
+[M::main] Version: 0.21-r606
+[M::main] CMD: minigraph -x lr -t1 ./outputfile.gfa HG002_chr1.fastq
+[M::main] Real time: 16575.875 sec; CPU: 16572.213 sec; Peak RSS: 4.197 GB
+Genotyped svs: 1697
+Constructing variation graph...
+Mapping reads on graph...
+Filtering alignment file...
+Genotyping SVs...
+[M::main::0.360*1.00] loaded the graph from "./outputfile.gfa"
+[M::mg_index::5.711*1.00] indexed the graph
+[M::mg_opt_update::6.105*1.00] occ_max1=142; lc_max_occ=2
+[M::worker_pipeline::171.271*1.00] mapped 24309 sequences
+[M::worker_pipeline::255.231*1.00] mapped 24150 sequences
+[M::worker_pipeline::527.962*1.00] mapped 24143 sequences
+[M::worker_pipeline::16345.612*1.00] mapped 23817 sequences
+[M::worker_pipeline::16429.565*1.00] mapped 24166 sequences
+[M::worker_pipeline::16530.239*1.00] mapped 24123 sequences
+[M::worker_pipeline::16569.533*1.00] mapped 8657 sequences
+[M::main] Version: 0.21-r606
+[M::main] CMD: minigraph -x lr -t1 ./outputfile.gfa HG002_chr1.fastq
+[M::main] Real time: 16569.608 sec; CPU: 16565.996 sec; Peak RSS: 4.197 GB
+Genotyped svs: 1697
+Constructing variation graph...
+Mapping reads on graph...
+Filtering alignment file...
+Genotyping SVs...
+[M::main::0.361*1.00] loaded the graph from "./outputfile.gfa"
+[M::mg_index::5.706*1.00] indexed the graph
+[M::mg_opt_update::6.100*1.00] occ_max1=142; lc_max_occ=2
+[M::worker_pipeline::171.234*1.00] mapped 24309 sequences
+[M::worker_pipeline::255.107*1.00] mapped 24150 sequences
+[M::worker_pipeline::527.631*1.00] mapped 24143 sequences
+[M::worker_pipeline::16335.334*1.00] mapped 23817 sequences
+[M::worker_pipeline::16419.239*1.00] mapped 24166 sequences
+[M::worker_pipeline::16519.820*1.00] mapped 24123 sequences
+[M::worker_pipeline::16559.098*1.00] mapped 8657 sequences
+[M::main] Version: 0.21-r606
+[M::main] CMD: minigraph -x lr -t1 ./outputfile.gfa HG002_chr1.fastq
+[M::main] Real time: 16559.173 sec; CPU: 16555.630 sec; Peak RSS: 4.197 GB
+Genotyped svs: 1697
+Constructing variation graph...
+Mapping reads on graph...
+Filtering alignment file...
+Genotyping SVs...
+[M::main::0.361*1.00] loaded the graph from "./outputfile.gfa"
+[M::mg_index::5.710*1.00] indexed the graph
+[M::mg_opt_update::6.104*1.00] occ_max1=142; lc_max_occ=2
+[M::worker_pipeline::171.196*1.00] mapped 24309 sequences
+[M::worker_pipeline::255.082*1.00] mapped 24150 sequences
+[M::worker_pipeline::527.793*1.00] mapped 24143 sequences
+[M::worker_pipeline::16336.652*1.00] mapped 23817 sequences
+[M::worker_pipeline::16420.700*1.00] mapped 24166 sequences
+[M::worker_pipeline::16521.294*1.00] mapped 24123 sequences
+[M::worker_pipeline::16560.588*1.00] mapped 8657 sequences
+[M::main] Version: 0.21-r606
+[M::main] CMD: minigraph -x lr -t1 ./outputfile.gfa HG002_chr1.fastq
+[M::main] Real time: 16560.663 sec; CPU: 16557.092 sec; Peak RSS: 4.197 GB
+Genotyped svs: 1697
+Constructing variation graph...
+Mapping reads on graph...
+Filtering alignment file...
+Genotyping SVs...
+	Command being timed: "./runJedi.sh 5 4 1 input.vcf HG002_chr1.fastq chr1.fa ./outputfile"
+	User time (seconds): 82845.84
+	System time (seconds): 13.41
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 23:01:17
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4400748
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 6501072
+	Voluntary context switches: 964
+	Involuntary context switches: 8409042
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 2966888
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

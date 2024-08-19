@@ -1,0 +1,283 @@
+ 2024-08-14T16:15:54.920Z INFO  kanpig > starting
+ 2024-08-14T16:15:54.920Z INFO  kanpig > params: ArgParser {
+    io: IOParams {
+        input: "HG002_resolved_chr1.vcf.gz",
+        bam: "HG002_chr1.bam",
+        reference: "chr1.fa",
+        out: Some(
+            "./outputfile",
+        ),
+        bed: None,
+        ploidy_bed: Some(
+            "../grch38_male.bed",
+        ),
+        sample: None,
+        threads: 1,
+        debug: false,
+    },
+    kd: KDParams {
+        kmer: 4,
+        chunksize: 1000,
+        passonly: false,
+        sizemin: 20,
+        sizemax: 10000,
+        maxpaths: 10000,
+        seqsim: 0.85,
+        sizesim: 0.9,
+        minkfreq: 1,
+        hapsim: 0.9999,
+        gpenalty: 0.02,
+        fpenalty: 0.1,
+        try_exact: false,
+        prune: false,
+        mapq: 5,
+        mapflag: 3840,
+        spanoff: true,
+        maxhom: 0,
+    },
+}
+ 2024-08-14T16:15:54.922Z INFO  kanpig > spawning 1 threads
+ 2024-08-14T16:15:54.922Z INFO  kanpig > building variant graphs
+ 2024-08-14T16:15:54.930Z INFO  kanpig::kplib::vcfwriter > setting sample to HG002
+ 2024-08-14T16:15:54.930Z WARN  kanpig::kplib::vcfwriter > clearing 1 sample columns in output
+ 2024-08-14T16:15:54.962Z INFO  kanpig::kplib::vcfreader > 1707 variants in 1453 chunks
+ 2024-08-14T16:15:54.962Z INFO  kanpig::kplib::vcfreader > 10 variants skipped
+ 2024-08-14T16:15:54.962Z INFO  kanpig                   > genotyping 1717 variants
+ 2024-08-14T16:16:13.627Z INFO  kanpig                   > genotype counts: {
+    Hom: 659,
+    Ref: 114,
+    Het: 924,
+    Non: 20,
+}
+ 2024-08-14T16:16:13.628Z INFO  kanpig                   > finished
+ 2024-08-14T16:16:13.631Z INFO  kanpig > starting
+ 2024-08-14T16:16:13.631Z INFO  kanpig > params: ArgParser {
+    io: IOParams {
+        input: "HG002_resolved_chr1.vcf.gz",
+        bam: "HG002_chr1.bam",
+        reference: "chr1.fa",
+        out: Some(
+            "./outputfile",
+        ),
+        bed: None,
+        ploidy_bed: Some(
+            "../grch38_male.bed",
+        ),
+        sample: None,
+        threads: 1,
+        debug: false,
+    },
+    kd: KDParams {
+        kmer: 4,
+        chunksize: 1000,
+        passonly: false,
+        sizemin: 20,
+        sizemax: 10000,
+        maxpaths: 10000,
+        seqsim: 0.85,
+        sizesim: 0.9,
+        minkfreq: 1,
+        hapsim: 0.9999,
+        gpenalty: 0.02,
+        fpenalty: 0.1,
+        try_exact: false,
+        prune: false,
+        mapq: 5,
+        mapflag: 3840,
+        spanoff: true,
+        maxhom: 0,
+    },
+}
+ 2024-08-14T16:16:13.632Z INFO  kanpig > spawning 1 threads
+ 2024-08-14T16:16:13.632Z INFO  kanpig > building variant graphs
+ 2024-08-14T16:16:13.646Z INFO  kanpig::kplib::vcfwriter > setting sample to HG002
+ 2024-08-14T16:16:13.646Z WARN  kanpig::kplib::vcfwriter > clearing 1 sample columns in output
+ 2024-08-14T16:16:13.658Z INFO  kanpig::kplib::vcfreader > 1707 variants in 1453 chunks
+ 2024-08-14T16:16:13.658Z INFO  kanpig::kplib::vcfreader > 10 variants skipped
+ 2024-08-14T16:16:13.658Z INFO  kanpig                   > genotyping 1717 variants
+ 2024-08-14T16:16:32.340Z INFO  kanpig                   > genotype counts: {
+    Ref: 114,
+    Non: 20,
+    Hom: 659,
+    Het: 924,
+}
+ 2024-08-14T16:16:32.341Z INFO  kanpig                   > finished
+ 2024-08-14T16:16:32.344Z INFO  kanpig > starting
+ 2024-08-14T16:16:32.344Z INFO  kanpig > params: ArgParser {
+    io: IOParams {
+        input: "HG002_resolved_chr1.vcf.gz",
+        bam: "HG002_chr1.bam",
+        reference: "chr1.fa",
+        out: Some(
+            "./outputfile",
+        ),
+        bed: None,
+        ploidy_bed: Some(
+            "../grch38_male.bed",
+        ),
+        sample: None,
+        threads: 1,
+        debug: false,
+    },
+    kd: KDParams {
+        kmer: 4,
+        chunksize: 1000,
+        passonly: false,
+        sizemin: 20,
+        sizemax: 10000,
+        maxpaths: 10000,
+        seqsim: 0.85,
+        sizesim: 0.9,
+        minkfreq: 1,
+        hapsim: 0.9999,
+        gpenalty: 0.02,
+        fpenalty: 0.1,
+        try_exact: false,
+        prune: false,
+        mapq: 5,
+        mapflag: 3840,
+        spanoff: true,
+        maxhom: 0,
+    },
+}
+ 2024-08-14T16:16:32.345Z INFO  kanpig > spawning 1 threads
+ 2024-08-14T16:16:32.345Z INFO  kanpig > building variant graphs
+ 2024-08-14T16:16:32.362Z INFO  kanpig::kplib::vcfwriter > setting sample to HG002
+ 2024-08-14T16:16:32.362Z WARN  kanpig::kplib::vcfwriter > clearing 1 sample columns in output
+ 2024-08-14T16:16:32.382Z INFO  kanpig::kplib::vcfreader > 1707 variants in 1453 chunks
+ 2024-08-14T16:16:32.382Z INFO  kanpig::kplib::vcfreader > 10 variants skipped
+ 2024-08-14T16:16:32.382Z INFO  kanpig                   > genotyping 1717 variants
+ 2024-08-14T16:16:51.093Z INFO  kanpig                   > genotype counts: {
+    Ref: 114,
+    Hom: 659,
+    Het: 924,
+    Non: 20,
+}
+ 2024-08-14T16:16:51.095Z INFO  kanpig                   > finished
+ 2024-08-14T16:16:51.098Z INFO  kanpig > starting
+ 2024-08-14T16:16:51.098Z INFO  kanpig > params: ArgParser {
+    io: IOParams {
+        input: "HG002_resolved_chr1.vcf.gz",
+        bam: "HG002_chr1.bam",
+        reference: "chr1.fa",
+        out: Some(
+            "./outputfile",
+        ),
+        bed: None,
+        ploidy_bed: Some(
+            "../grch38_male.bed",
+        ),
+        sample: None,
+        threads: 1,
+        debug: false,
+    },
+    kd: KDParams {
+        kmer: 4,
+        chunksize: 1000,
+        passonly: false,
+        sizemin: 20,
+        sizemax: 10000,
+        maxpaths: 10000,
+        seqsim: 0.85,
+        sizesim: 0.9,
+        minkfreq: 1,
+        hapsim: 0.9999,
+        gpenalty: 0.02,
+        fpenalty: 0.1,
+        try_exact: false,
+        prune: false,
+        mapq: 5,
+        mapflag: 3840,
+        spanoff: true,
+        maxhom: 0,
+    },
+}
+ 2024-08-14T16:16:51.098Z INFO  kanpig > spawning 1 threads
+ 2024-08-14T16:16:51.098Z INFO  kanpig > building variant graphs
+ 2024-08-14T16:16:51.110Z INFO  kanpig::kplib::vcfwriter > setting sample to HG002
+ 2024-08-14T16:16:51.110Z WARN  kanpig::kplib::vcfwriter > clearing 1 sample columns in output
+ 2024-08-14T16:16:51.124Z INFO  kanpig::kplib::vcfreader > 1707 variants in 1453 chunks
+ 2024-08-14T16:16:51.124Z INFO  kanpig::kplib::vcfreader > 10 variants skipped
+ 2024-08-14T16:16:51.124Z INFO  kanpig                   > genotyping 1717 variants
+ 2024-08-14T16:17:09.927Z INFO  kanpig                   > genotype counts: {
+    Het: 924,
+    Hom: 659,
+    Ref: 114,
+    Non: 20,
+}
+ 2024-08-14T16:17:09.928Z INFO  kanpig                   > finished
+ 2024-08-14T16:17:09.931Z INFO  kanpig > starting
+ 2024-08-14T16:17:09.931Z INFO  kanpig > params: ArgParser {
+    io: IOParams {
+        input: "HG002_resolved_chr1.vcf.gz",
+        bam: "HG002_chr1.bam",
+        reference: "chr1.fa",
+        out: Some(
+            "./outputfile",
+        ),
+        bed: None,
+        ploidy_bed: Some(
+            "../grch38_male.bed",
+        ),
+        sample: None,
+        threads: 1,
+        debug: false,
+    },
+    kd: KDParams {
+        kmer: 4,
+        chunksize: 1000,
+        passonly: false,
+        sizemin: 20,
+        sizemax: 10000,
+        maxpaths: 10000,
+        seqsim: 0.85,
+        sizesim: 0.9,
+        minkfreq: 1,
+        hapsim: 0.9999,
+        gpenalty: 0.02,
+        fpenalty: 0.1,
+        try_exact: false,
+        prune: false,
+        mapq: 5,
+        mapflag: 3840,
+        spanoff: true,
+        maxhom: 0,
+    },
+}
+ 2024-08-14T16:17:09.932Z INFO  kanpig > spawning 1 threads
+ 2024-08-14T16:17:09.932Z INFO  kanpig > building variant graphs
+ 2024-08-14T16:17:09.942Z INFO  kanpig::kplib::vcfwriter > setting sample to HG002
+ 2024-08-14T16:17:09.942Z WARN  kanpig::kplib::vcfwriter > clearing 1 sample columns in output
+ 2024-08-14T16:17:09.950Z INFO  kanpig::kplib::vcfreader > 1707 variants in 1453 chunks
+ 2024-08-14T16:17:09.950Z INFO  kanpig::kplib::vcfreader > 10 variants skipped
+ 2024-08-14T16:17:09.950Z INFO  kanpig                   > genotyping 1717 variants
+ 2024-08-14T16:17:28.622Z INFO  kanpig                   > genotype counts: {
+    Non: 20,
+    Ref: 114,
+    Hom: 659,
+    Het: 924,
+}
+ 2024-08-14T16:17:28.623Z INFO  kanpig                   > finished
+	Command being timed: "./runKanpig.sh 5 4 1 HG002_resolved_chr1.vcf.gz HG002_chr1.bam chr1.fa ./outputfile"
+	User time (seconds): 91.44
+	System time (seconds): 2.24
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:33.71
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 17648
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 24
+	Minor (reclaiming a frame) page faults: 1341655
+	Voluntary context switches: 14599
+	Involuntary context switches: 22951
+	Swaps: 0
+	File system inputs: 8136
+	File system outputs: 19608
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

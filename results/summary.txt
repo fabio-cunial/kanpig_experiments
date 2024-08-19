@@ -1,0 +1,8 @@
+#tool,avg_wall_clock_s,max_rss_kb
+#order: pbmm2, sniffles, cutesv, jedi, minigraph, kanpig
+14582.00,3185488
+4201.68,209360
+1925.52,813960
+16575.40,4400748
+16568.65,4197000.00
+1124.52,17648
