@@ -11,7 +11,7 @@ Output structure:
         - tm: section 9 results with truth multi-sample. first key is program name
         - dm: section 7 results with discovery multi-sample. first key is program name
     Level2 keys:
-        - program name except svjedi on some samples
+        - program name except
     Level3 keys:
         - type: table of stats by svtype
         - neigh: table of stats by number of neighbors
@@ -451,11 +451,7 @@ def initial_clean(args, programs):
     # Easier to index in a loop
     d_args = dict(args._get_kwargs())
 
-    # Can't process some svjedi
-    if not args.force_svjedi and args.sample not in HAS_SVJEDI:
-        programs.remove('svjedi')
-    else:
-        d_args['svjedi_8'] = clean_svjedi_8(d_args['svjedi_8'])
+    d_args['svjedi_8'] = clean_svjedi_8(d_args['svjedi_8'])
 
     # Some sniffles results need headers fixed
     if not args.skip_multi:
@@ -552,7 +548,7 @@ if __name__ == '__main__':
     parser.add_argument("--output", type=str, required=True,
                         help="Output joblib file")
     parser.add_argument("--sample", type=str, required=True,
-                        help="Sample name (for auto skipping some svjedi")
+                        help="Sample name")
     parser.add_argument("--truth", type=str, required=True,
                         help="Dipcall truth VCF")
     parser.add_argument("--bed", type=str, required=True,
@@ -561,8 +557,6 @@ if __name__ == '__main__':
                         help="Single sample discovery vcf")
     parser.add_argument("--skip-multi", action="store_true",
                         help="Don't run multi-sample experiments in 7 and 9. relevant for ont")
-    parser.add_argument("--force-svjedi", action="store_true",
-                        help="Ignore the internal svjedi subset and check it")
     parser.add_argument("--trs", type=str, required=False,
                         help="Bed file of TRs for additional stratification")
     for i in programs:
