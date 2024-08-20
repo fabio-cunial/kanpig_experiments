@@ -413,13 +413,13 @@ def clean_svjedi_8(orig_vcf):
     pysam.tabix_index(out_vcf, force=True, preset="vcf")
     return "temp/svjedi08.vcf.gz"
 
-def clean_sniffles_79(orig_vcf):
+def clean_sniffles_79(orig_vcf, m_id):
     """
     Sniffles keeps every sample name in the vcf but only populates the first one.
     """
     bname = "temp/tmp." + os.path.basename(orig_vcf)[:-len('.gz')]
     truvari.cmd_exe(f"gunzip -c {orig_vcf} | cut -f1-10 > {bname}", pipefail=True)
-    fname = "temp/" + os.path.basename(orig_vcf)[:-len('.gz')]
+    fname = f"temp/{m_id}." + os.path.basename(orig_vcf)[:-len('.gz')]
     remove_big(bname, fname)
     # This is a bigfile I don't want to keep
     os.remove(bname)
@@ -456,8 +456,8 @@ def initial_clean(args, programs):
     # Some sniffles results need headers fixed
     if not args.skip_multi:
         logging.info("Cleaning sniffles")
-        d_args['sniffles_7'] = clean_sniffles_79(d_args['sniffles_7'])
-        d_args['sniffles_9'] = clean_sniffles_79(d_args['sniffles_9'])
+        d_args['sniffles_7'] = clean_sniffles_79(d_args['sniffles_7'], '7')
+        d_args['sniffles_9'] = clean_sniffles_79(d_args['sniffles_9'], '9')
 
     # Section 7 and section 9 need to have their bigs removed for speed
     logging.info("Removing big variants")
@@ -467,7 +467,7 @@ def initial_clean(args, programs):
             continue
         for j in ['7', '9']:
             fname = d_args[f'{p}_{j}']
-            bname = "temp/nobig." + os.path.basename(fname)[:-len(".gz")]
+            bname = f"temp/nobig.{p}_{j}." + os.path.basename(fname)[:-len(".gz")]
             remove_big(fname, bname)
             d_args[f'{p}_{j}'] = bname + '.gz'
     
@@ -475,14 +475,14 @@ def initial_clean(args, programs):
     for p in programs:
         for j in ['5', '7', '8', '9']:
             fname = d_args[f'{p}_{j}']
-            oname = "temp/numneigh." + os.path.basename(fname)[:-len(".gz")]
+            oname = f"temp/numneigh.{p}_{j}." + os.path.basename(fname)[:-len(".gz")]
             anno_neigh(fname, oname)
             d_args[f'{p}_{j}'] = oname + '.gz'
     # And the initial discovery
-    fname = d_args[f'discovery']
-    oname = "temp/numneigh." + os.path.basename(fname)[:-len(".gz")]
+    fname = d_args['discovery']
+    oname = "temp/numneigh.disc." + os.path.basename(fname)[:-len(".gz")]
     anno_neigh(fname, oname)
-    d_args[f'discovery'] = oname + '.gz'
+    d_args['discovery'] = oname + '.gz'
 
     return d_args
 
