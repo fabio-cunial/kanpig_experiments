@@ -21,7 +21,6 @@ matcher.params.pick = 'multi'
 
 chunks = truvari.chunker(matcher, ('base', vcf))
 
-
 matched = 0
 checked = 0
 for m, _ in chunks:

@@ -31,6 +31,7 @@ import shutil
 import logging
 import argparse
 import itertools
+import tempfile
 
 import pysam
 import joblib
@@ -46,10 +47,8 @@ from collections import Counter, defaultdict
 SIZEMIN = 50
 SIZEMAX = 10000
 NEIGHLIMIT = 11
-HAS_SVJEDI = ["HG002", "HG00621", "HG00673", "HG00735", "HG01928",
-              "HG02572", "HG03098", "HG03492", "HG03516"]
 
-
+TMPDIR = tempfile.gettempdir()
 def make_tables():
     gtmatrix = {}
     for key in truvari.GT:
@@ -81,7 +80,7 @@ def truth_single_compare(truth_fn, bed_fn, vcf_fn):
     gtmatrix, m_cnt, m_neigh_cnt = make_tables()
 
     # merge... if I can abstract this out, I can reuse the rest for grabbing stats
-    out_fn1 = f"temp/merge.vcf.gz"
+    out_fn1 = f"{TMPDIR}/merge.vcf.gz"
     bcftools.merge("-m", "none", "--force-samples", "-O", "z", "-o", out_fn1,
                    truth_fn, vcf_fn, catch_stdout=False)
     pysam.tabix_index(out_fn1, force=True, preset="vcf")
@@ -374,23 +373,23 @@ def prepare_truth(truth, bed):
     returns new truth/bed file names
     """
     logging.info("Preparing truth")
-    with open(bed, 'r') as fh, open('temp/new.bed', 'w') as fout:
+    with open(bed, 'r') as fh, open(f'{TMPDIR}/new.bed', 'w') as fout:
         for line in fh:
             d = line.strip().split('\t')
             if not ('_' in d[0] or d[0] in ['chrX', 'chrY', 'chrM', 'chrEBV']):
                 fout.write(line)
     # Remove * alleles since docker is using truvari v4.2.2
     orig = pysam.VariantFile(truth)
-    out = pysam.VariantFile("temp/tmp.base.vcf", 'w', header=orig.header)
+    out = pysam.VariantFile(f"{TMPDIR}/tmp.base.vcf", 'w', header=orig.header)
     for entry in orig:
         if entry.alts is None or entry.alts[0] == '*':
             continue
         if truvari.entry_size(entry) < SIZEMAX * 1.5:
             out.write(entry)
     out.close()
-    truvari.compress_index_vcf("temp/tmp.base.vcf")
-    anno_neigh("temp/tmp.base.vcf.gz", "temp/baseline.neigh.vcf")
-    return "temp/baseline.neigh.vcf.gz", "temp/new.bed"
+    truvari.compress_index_vcf(f"{TMPDIR}/tmp.base.vcf")
+    anno_neigh(f"{TMPDIR}/tmp.base.vcf.gz", f"{TMPDIR}/baseline.neigh.vcf")
+    return f"{TMPDIR}/baseline.neigh.vcf.gz", f"{TMPDIR}/new.bed"
 
 
 def anno_neigh(in_vcf, out_fn):
@@ -407,19 +406,19 @@ def clean_svjedi_8(orig_vcf):
     The ad format is messed up in their output
     """
     logging.info("Cleaning svjedi 8")
-    out_vcf = "temp/svjedi08.vcf.gz"
+    out_vcf = f"{TMPDIR}/svjedi08.vcf.gz"
     bcftools.annotate("-x", "FORMAT/AD", "-O", "z", "-o",
                       out_vcf, orig_vcf, catch_stdout=False)
     pysam.tabix_index(out_vcf, force=True, preset="vcf")
-    return "temp/svjedi08.vcf.gz"
+    return f"{TMPDIR}/svjedi08.vcf.gz"
 
 def clean_sniffles_79(orig_vcf, m_id):
     """
     Sniffles keeps every sample name in the vcf but only populates the first one.
     """
-    bname = "temp/tmp." + os.path.basename(orig_vcf)[:-len('.gz')]
+    bname = f"{TMPDIR}/tmp." + os.path.basename(orig_vcf)[:-len('.gz')]
     truvari.cmd_exe(f"gunzip -c {orig_vcf} | cut -f1-10 > {bname}", pipefail=True)
-    fname = f"temp/{m_id}." + os.path.basename(orig_vcf)[:-len('.gz')]
+    fname = f"{TMPDIR}/{m_id}." + os.path.basename(orig_vcf)[:-len('.gz')]
     remove_big(bname, fname)
     # This is a bigfile I don't want to keep
     os.remove(bname)
@@ -467,7 +466,7 @@ def initial_clean(args, programs):
             continue
         for j in ['7', '9']:
             fname = d_args[f'{p}_{j}']
-            bname = f"temp/nobig.{p}_{j}." + os.path.basename(fname)[:-len(".gz")]
+            bname = f"{TMPDIR}/nobig.{p}_{j}." + os.path.basename(fname)[:-len(".gz")]
             remove_big(fname, bname)
             d_args[f'{p}_{j}'] = bname + '.gz'
     
@@ -475,12 +474,12 @@ def initial_clean(args, programs):
     for p in programs:
         for j in ['5', '7', '8', '9']:
             fname = d_args[f'{p}_{j}']
-            oname = f"temp/numneigh.{p}_{j}." + os.path.basename(fname)[:-len(".gz")]
+            oname = f"{TMPDIR}/numneigh.{p}_{j}." + os.path.basename(fname)[:-len(".gz")]
             anno_neigh(fname, oname)
             d_args[f'{p}_{j}'] = oname + '.gz'
     # And the initial discovery
     fname = d_args['discovery']
-    oname = "temp/numneigh.disc." + os.path.basename(fname)[:-len(".gz")]
+    oname = f"{TMPDIR}/numneigh.disc." + os.path.basename(fname)[:-len(".gz")]
     anno_neigh(fname, oname)
     d_args['discovery'] = oname + '.gz'
 
@@ -532,12 +531,12 @@ def split_by_tr(d_args):
     m_bed = d_args['bed']
     m_tr = d_args['trs']
     #Check these params
-    ret1 = truvari.cmd_exe(f"bedtools intersect -u -f 1 -a {m_tr} -b {m_bed} > temp/tr.bed")
-    ret2 = truvari.cmd_exe(f"bedtools subtract -a {m_bed} -b {m_tr} > temp/nontr.bed")
+    ret1 = truvari.cmd_exe(f"bedtools intersect -u -f 1 -a {m_tr} -b {m_bed} > {TMPDIR}/tr.bed")
+    ret2 = truvari.cmd_exe(f"bedtools subtract -a {m_bed} -b {m_tr} > {TMPDIR}/nontr.bed")
     arg1 = dict(d_args)
-    arg1['bed'] = "temp/tr.bed"
+    arg1['bed'] = f"{TMPDIR}/tr.bed"
     arg2 = dict(d_args)
-    arg2['bed'] = "temp/nontr.bed"
+    arg2['bed'] = f"{TMPDIR}/nontr.bed"
 
     return arg1, arg2
 
