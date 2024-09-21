@@ -13,7 +13,7 @@ v = pysam.VariantFile(sys.argv[1])
 
 chunks = truvari.chunker(matcher, ('file', v))
 def conflict(call1, call2):
-    ovl = truvari.entry_reciprocal_overlap(call1, call2)
+    ovl = truvari.entry_reciprocal_overlap(call1, call2, ins_inflate=False)
     if not ovl:
         return False
     samp = 0
@@ -21,8 +21,10 @@ def conflict(call1, call2):
         c1_gt = truvari.get_gt(call1.samples[samp]['GT'])
         c2_gt = truvari.get_gt(call2.samples[samp]['GT'])
         if c1_gt == truvari.GT.HOM and c2_gt in [truvari.GT.HOM, truvari.GT.HET]:
+            #print(ovl, samp)
             return True
         if c2_gt == truvari.GT.HOM and c1_gt in [truvari.GT.HOM, truvari.GT.HET]:
+            #print(ovl, samp)
             return True
         samp += 1
     return False
@@ -47,6 +49,7 @@ for chunk, _ in chunks:
                 continue
             call2 = variants[j]
             if conflict(call1, call2):
+                #print(call1, call2)
                 status[i] = True
                 status[j] = True
     n_conflict += sum(status)
