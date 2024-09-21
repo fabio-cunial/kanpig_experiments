@@ -12,6 +12,10 @@ regions = truvari.build_region_tree(vcf, includebed=bed_fn)
 
 vcf_i = truvari.region_filter(vcf, regions)
 
+# x=has_neigh
+# y=het/hom
+#check for independence
+table = [[0, 0], [0, 0]]
 cnt = 0
 het = 0
 hom = 0
@@ -24,14 +28,22 @@ for entry in vcf_i:
         continue
     if entry.alts[0] in (None, '*'):
         continue
+    m_neigh = 0
     if entry.info['NumNeighbors'] != 0:
         has_neigh += 1
+        m_neigh = 1
+    m_gt = 0
     if entry.samples[0]['GT'] in [(0,1), (1,0)]:
         het += 1
+        m_gt = 0
     elif entry.samples[0]['GT'] in [(1,1)]:
         hom += 1
+        m_gt = 1
     else:
         continue
     cnt += 1
+    table[m_neigh][m_gt] += 1
+
 
 print(cnt, het / hom, het, hom, has_neigh, sep='\t')
+print(table)
