@@ -8,11 +8,13 @@ SZMAX = 10000
 def parse_vcf(vcf_file, in_bed):
     vcf = pysam.VariantFile(vcf_file)
     bed, _ = truvari.build_anno_tree(in_bed)
-    del(bed['chrX'])
-    del(bed['chrY'])
+    #del(bed['chrX'])
+    #del(bed['chrY'])
     vcf_i = truvari.region_filter(vcf, bed)
     genotype_counts = []
     for entry in vcf_i:
+        if entry.info['ExcHet'][0] <= 0.05:
+            continue
         if entry.chrom == 'chrX' or entry.chrom == 'chrY':
             continue
         sz = truvari.entry_size(entry)

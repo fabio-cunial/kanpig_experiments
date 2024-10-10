@@ -35,6 +35,8 @@ for chunk, _ in chunks:
     # Are there multiple deletions
     # This is only checking deletions...
     variants = chunk['file']
+    if not variants or variants[0].chrom in ['chrX', 'chrY']:
+        continue
     tcnt = len(variants)
     n_calls += tcnt
     if tcnt == 1:
