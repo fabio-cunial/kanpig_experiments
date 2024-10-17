@@ -1,7 +1,9 @@
 import joblib
 import pandas as pd
+import json
 from scipy.stats import pearsonr
 import sys
+import truvari
 
 def get_af(x):
     if isinstance(x, tuple):
@@ -27,8 +29,25 @@ def get_pairs(data):
     return pearsonr(combined['AF_base'], combined['AF_comp'])
 
 orig = joblib.load(sys.argv[1])
-print(get_pairs(orig))
-#for key in orig:
-    #print(key, get_pairs(orig[key]))
+
+def process(df):
+    cor = get_pairs(df)
+    x = df['state'].value_counts().to_dict()
+    perf = truvari.performance_metrics(**x)
+    result = dict(zip(['precision', 'recall', 'f1'], perf))
+    result['correlation'] = cor.statistic
+    result['pvalue'] = cor.pvalue
+    return result
+
+
+results = {}
+results["ALL"] = process(orig)
+
+view = orig[orig['svtype'] == 'DEL'].copy()
+results["DEL"] = process(view)
+
+view = orig[orig['svtype'] == 'INS'].copy()
+results["INS"] = process(view)
+print(json.dumps(results, indent=4))
 
 
