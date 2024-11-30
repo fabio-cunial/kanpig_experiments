@@ -67,8 +67,12 @@ def canberra(a, b, mink=1):
 
     return 1.0 - (neum / deno)
 
+def cansim(seq1, seq2, kmer=4):
+    k1 = kfeat(seq1, kmer)
+    k2 = kfeat(seq2, kmer)
+    return round(canberra(k1, k2), 4)
 
-def analyze_group(cur_group):
+def analyze_group(cur_group, kmer):
     if len(cur_group) < 2:
         return
 
@@ -77,10 +81,8 @@ def analyze_group(cur_group):
             continue
         seq_sim = round(truvari.entry_seq_similarity(i, j), 4)
 
-        k1 = kfeat(i.alts[0], KMER)
-        k2 = kfeat(j.alts[0], KMER)
-        can_sim = round(canberra(k1, k2), 4)
-        
+        can_sim = cansim(i.alts[0], j.alts[0], kmer)
+
         sz1 = truvari.entry_size(i)
         sz2 = truvari.entry_size(j)
         szbin = truvari.get_sizebin(max(sz1, sz2))
@@ -88,9 +90,10 @@ def analyze_group(cur_group):
         #if abs(seq_sim - can_sim) > .5:
             #sys.stderr.write(f"{str(i)}\n{str(j)}\n")
             #print(szbin, szsim, seq_sim, can_sim, sep='\t', file=sys.stderr)
-        print(szbin, szsim, seq_sim, can_sim, i.pos == j.pos, sep='\t')
+        print(szbin, szsim, seq_sim, can_sim, i.pos == j.pos, sz1, sz2, sep='\t')
 
 if __name__ == '__main__':
+    KMER = int(sys.argv[1])
     fn = "../estab_benchmark/giab_comp/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
     bed_fn = "../estab_benchmark/giab_comp/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
 
@@ -98,7 +101,7 @@ if __name__ == '__main__':
     #bed = truvari.build_region_tree(vcfA=vcf, includebed=bed_fn)
     #vcf_i = truvari.region_filter(vcf, bed)
 
-    print("szbin\tszsim\tseqsim\tcansim\tsame_start")
+    print("szbin\tszsim\tseqsim\tcansim\tsame_start\tsz1\tsz2")
 
     last_pos = 0
     last_chrom = None
@@ -113,10 +116,10 @@ if __name__ == '__main__':
         if last_chrom is None:
             last_chrom = entry.chrom
         if entry.pos - last_pos > MAXDIST or entry.chrom != last_chrom:
-            analyze_group(cur_group)
+            analyze_group(cur_group, KMER)
             cur_group = []
         last_pos = entry.pos
         last_chrom = entry.chrom
         cur_group.append(entry)
 
-    analyze_group(cur_group)
+    analyze_group(cur_group, KMER)
