@@ -46,7 +46,7 @@ def kfeat(seq, kmer_len=4):
     return ret
 
 
-def canberra(a, b, mink=1):
+def canberra(a, b, mink=1, maxk=-1):
     """
     canberra similarity of two vectors
     """
@@ -55,7 +55,7 @@ def canberra(a, b, mink=1):
 
     for x, y in zip(a, b):
         total_d = abs(x) + abs(y)
-        if total_d > mink:
+        if total_d > mink:# and (maxk == -1 or total_d < maxk):
             deno += total_d
             neum += abs(x - y)
 
@@ -67,10 +67,46 @@ def canberra(a, b, mink=1):
 
     return 1.0 - (neum / deno)
 
-def cansim(seq1, seq2, kmer=4):
+def weigh_canberra(a, b, length, mink=1, maxk=-1):
+    """
+    canberra similarity of two vectors
+    """
+    deno = 0.0
+    neum = 0.0
+    def correction(v, corr):
+        t = abs(v)
+        # Bin by some percent of the length
+        #corr = maxk#m_len * maxk
+        t = (t / corr) + (t % corr)
+        if v < 0:
+            return -t
+        return t
+    view = np.abs(np.hstack([a, b]))
+    view = view[view > mink]
+    corr = np.median(view)
+    thresh = np.percentile(view, 10)
+    for x, y in zip(a, b):
+        total_d = abs(x) + abs(y)
+        if total_d > thresh:
+            x = correction(x, corr)
+            y = correction(y, corr)
+            total_d = abs(x) + abs(y)
+        if total_d > mink:
+            neum +=  abs(x - y)
+            deno += total_d
+
+    if deno == 0.0:
+        return 0.0
+
+    if neum == 0.0:
+        return 1.0
+
+    return 1.0 - (neum / deno)
+
+def cansim(seq1, seq2, length, kmer=4, mink=1, maxk=-1):
     k1 = kfeat(seq1, kmer)
     k2 = kfeat(seq2, kmer)
-    return round(canberra(k1, k2), 4)
+    return round(canberra(k1, k2, mink, maxk), 4), round(weigh_canberra(k1, k2, length, mink, maxk), 4)
 
 def analyze_group(cur_group, kmer):
     if len(cur_group) < 2:
@@ -81,7 +117,7 @@ def analyze_group(cur_group, kmer):
             continue
         seq_sim = round(truvari.entry_seq_similarity(i, j), 4)
 
-        can_sim = cansim(i.alts[0], j.alts[0], kmer)
+        can_sim, weigh_can_sim = cansim(i.alts[0], j.alts[0], kmer)
 
         sz1 = truvari.entry_size(i)
         sz2 = truvari.entry_size(j)
@@ -90,7 +126,7 @@ def analyze_group(cur_group, kmer):
         #if abs(seq_sim - can_sim) > .5:
             #sys.stderr.write(f"{str(i)}\n{str(j)}\n")
             #print(szbin, szsim, seq_sim, can_sim, sep='\t', file=sys.stderr)
-        print(szbin, szsim, seq_sim, can_sim, i.pos == j.pos, sz1, sz2, sep='\t')
+        print(szbin, szsim, seq_sim, can_sim, weigh_can_sim, i.pos == j.pos, sz1, sz2, sep='\t')
 
 if __name__ == '__main__':
     KMER = int(sys.argv[1])
@@ -101,7 +137,7 @@ if __name__ == '__main__':
     #bed = truvari.build_region_tree(vcfA=vcf, includebed=bed_fn)
     #vcf_i = truvari.region_filter(vcf, bed)
 
-    print("szbin\tszsim\tseqsim\tcansim\tsame_start\tsz1\tsz2")
+    print("szbin\tszsim\tseqsim\tcansim\tweigh_can_sim\tsame_start\tsz1\tsz2")
 
     last_pos = 0
     last_chrom = None
