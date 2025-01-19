@@ -3,6 +3,7 @@
 set -x
 WOMTOOL_PATH="/Users/fcunial/apps/cromwell/womtool-84.jar"
 
+java -jar ${WOMTOOL_PATH} validate -l CutesvSingleSample.wdl
 java -jar ${WOMTOOL_PATH} validate -l KanpigGenotyper.wdl
 java -jar ${WOMTOOL_PATH} validate -l LrcallerGenotyper.wdl
 java -jar ${WOMTOOL_PATH} validate -l SvjediGenotyper.wdl

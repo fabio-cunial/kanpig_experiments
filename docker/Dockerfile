@@ -107,9 +107,11 @@ RUN pip3 install sniffles==${sniffles_version} \
     && sniffles -h
 
 # CUTESV
+ARG cutesv_commit=9baddecb32cfbdfbea95be895d0b4edb6cd17fe2
 RUN pip install setuptools==58 scikit-learn \
     && git clone https://github.com/tjiangHIT/cuteSV.git \
     && cd cuteSV \
+    && git checkout ${cutesv_commit} \ 
     && python setup.py install \
     && cuteSV -h
 
